@@ -24,6 +24,8 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 4. Enter the repository URL: `https://github.com/SHthemW/Unity-Favorites-Tool.git`
 5. Click **Add**
 
+![Unity Package Manager](res/UPM.png)
+
 ### Option 2: Manual Install
 
 Copy the `QuickAccessWindow.cs` file into any `Editor` folder in your Unity project.
@@ -32,12 +34,16 @@ Copy the `QuickAccessWindow.cs` file into any `Editor` folder in your Unity proj
 
 Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` / `Cmd+Shift+Q`).
 
+![Main Window](res/Main.png)
+
 ### Adding Favorites
 
 | Method                      | How                                                     |
 | --------------------------- | ------------------------------------------------------- |
 | From the QuickAccess window | Click the star icon on any asset row                    |
 | From the Project window     | Right-click an asset > **Add to QuickAccess Favorites** |
+
+![Context Menu Options](res/MenuOptions.png)
 
 ### Removing Favorites
 
@@ -83,6 +89,8 @@ MIT
 4. 输入仓库 URL：`https://github.com/SHthemW/Unity-Favorites-Tool.git`
 5. 点击 **Add**
 
+![Unity Package Manager](res/UPM.png)
+
 ### 方法 2：手动安装
 
 将 `QuickAccessWindow.cs` 文件复制到 Unity 项目中任意 `Editor` 文件夹下即可。
@@ -91,12 +99,16 @@ MIT
 
 通过菜单打开窗口：**Tools > QuickAccess**（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
 
+![主窗口](res/Main.png)
+
 ### 添加收藏
 
 | 方式                  | 操作                                        |
 | --------------------- | ------------------------------------------- |
 | 在 QuickAccess 窗口中 | 点击资源行右侧的星标图标                    |
 | 在 Project 窗口中     | 右键资源 > **Add to QuickAccess Favorites** |
+
+![右键菜单选项](res/MenuOptions.png)
 
 ### 移除收藏
 
