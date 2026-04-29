@@ -1,6 +1,7 @@
 # Unity package - ignore Unity-specific import settings
-*.meta export-ignore
+# Note: .meta files ARE included for Git URL packages (required by UPM)
 *.unity export-ignore
+*.unitypackage export-ignore
 *.unitypackage export-ignore
 ProjectSettings export-ignore
 Library export-ignore
