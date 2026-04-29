@@ -1,0 +1,9 @@
+# Unity package - ignore Unity-specific import settings
+*.meta export-ignore
+*.unity export-ignore
+*.unitypackage export-ignore
+ProjectSettings export-ignore
+Library export-ignore
+Temp export-ignore
+obj export-ignore
+Build export-ignore

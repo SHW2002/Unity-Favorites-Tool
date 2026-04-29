@@ -16,6 +16,16 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 
 ## Installation
 
+### Option 1: Install via Git URL (Recommended)
+
+1. Open Unity Package Manager (**Window > Package Manager**)
+2. Click the **+** button in the top-left corner
+3. Select **Add package by git URL...**
+4. Enter the repository URL: `https://github.com/YOUR_USERNAME/Unity-Favorites-Tool.git`
+5. Click **Add**
+
+### Option 2: Manual Install
+
 Copy the `QuickAccessWindow.cs` file into any `Editor` folder in your Unity project.
 
 ## Usage
@@ -64,6 +74,16 @@ MIT
 - **自动清理** — 已删除或丢失的资源会自动从列表中移除。
 
 ## 安装方法
+
+### 方法 1：通过 Git URL 安装（推荐）
+
+1. 打开 Unity Package Manager（**Window > Package Manager**）
+2. 点击左上角的 **+** 按钮
+3. 选择 **Add package by git URL...**
+4. 输入仓库 URL：`https://github.com/YOUR_USERNAME/Unity-Favorites-Tool.git`
+5. 点击 **Add**
+
+### 方法 2：手动安装
 
 将 `QuickAccessWindow.cs` 文件复制到 Unity 项目中任意 `Editor` 文件夹下即可。
 
