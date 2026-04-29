@@ -3,7 +3,7 @@
 A lightweight Unity Editor window that provides quick access to your favorite and recently edited assets.
 
 <p align="center">
-  <img src="res/Main.png" width="50%" alt="Main Window">
+  <img src="res/Main.png" width="40%" alt="Main Window">
 </p>
 
 ## Features
@@ -29,7 +29,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 5. Click **Add**
 
 <p align="center">
-  <img src="res/UPM.png" width="50%" alt="Unity Package Manager">
+  <img src="res/UPM.png" width="70%" alt="Unity Package Manager">
 </p>
 
 ### Option 2: Manual Install
@@ -47,7 +47,9 @@ Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` 
 | From the QuickAccess window | Click the star icon on any asset row                    |
 | From the Project window     | Right-click an asset > **Add to QuickAccess Favorites** |
 
-![Context Menu Options](res/MenuOptions.png)
+<p align="center">
+  <img src="res/MenuOptions.png" width="60%" alt="MenuOptions">
+</p>
 
 ### Removing Favorites
 
@@ -70,6 +72,10 @@ MIT
 # Unity QuickAccess - 收藏夹工具
 
 一个轻量级的 Unity 编辑器窗口，提供对收藏资源和最近编辑资源的快速访问。
+
+<p align="center">
+  <img src="res/Main.png" width="40%" alt="Main Window">
+</p>
 
 ## 功能特性
 
@@ -94,7 +100,7 @@ MIT
 5. 点击 **Add**
 
 <p align="center">
-  <img src="res/UPM.png" width="50%" alt="Unity Package Manager">
+  <img src="res/UPM.png" width="70%" alt="Unity Package Manager">
 </p>
 
 ### 方法 2：手动安装
@@ -105,8 +111,6 @@ MIT
 
 通过菜单打开窗口：**Tools > QuickAccess**（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
 
-![主窗口](res/Main.png)
-
 ### 添加收藏
 
 | 方式                  | 操作                                        |
@@ -114,7 +118,9 @@ MIT
 | 在 QuickAccess 窗口中 | 点击资源行右侧的星标图标                    |
 | 在 Project 窗口中     | 右键资源 > **Add to QuickAccess Favorites** |
 
-![右键菜单选项](res/MenuOptions.png)
+<p align="center">
+  <img src="res/MenuOptions.png" width="60%" alt="MenuOptions">
+</p>
 
 ### 移除收藏
 
