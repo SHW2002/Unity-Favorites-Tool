@@ -2,6 +2,10 @@
 
 A lightweight Unity Editor window that provides quick access to your favorite and recently edited assets.
 
+<p align="center">
+  <img src="res/Main.png" width="50%" alt="Main Window">
+</p>
+
 ## Features
 
 - **Favorites Panel** — Star any asset to pin it to your favorites list for instant access.
@@ -24,7 +28,9 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 4. Enter the repository URL: `https://github.com/SHthemW/Unity-Favorites-Tool.git`
 5. Click **Add**
 
-![Unity Package Manager](res/UPM.png)
+<p align="center">
+  <img src="res/UPM.png" width="50%" alt="Unity Package Manager">
+</p>
 
 ### Option 2: Manual Install
 
@@ -33,8 +39,6 @@ Copy the `QuickAccessWindow.cs` file into any `Editor` folder in your Unity proj
 ## Usage
 
 Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` / `Cmd+Shift+Q`).
-
-![Main Window](res/Main.png)
 
 ### Adding Favorites
 
@@ -89,7 +93,9 @@ MIT
 4. 输入仓库 URL：`https://github.com/SHthemW/Unity-Favorites-Tool.git`
 5. 点击 **Add**
 
-![Unity Package Manager](res/UPM.png)
+<p align="center">
+  <img src="res/UPM.png" width="50%" alt="Unity Package Manager">
+</p>
 
 ### 方法 2：手动安装
 
