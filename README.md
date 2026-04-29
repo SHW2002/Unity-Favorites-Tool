@@ -21,7 +21,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 1. Open Unity Package Manager (**Window > Package Manager**)
 2. Click the **+** button in the top-left corner
 3. Select **Add package by git URL...**
-4. Enter the repository URL: `https://github.com/YOUR_USERNAME/Unity-Favorites-Tool.git`
+4. Enter the repository URL: `https://github.com/SHthemW/Unity-Favorites-Tool.git`
 5. Click **Add**
 
 ### Option 2: Manual Install
@@ -34,17 +34,17 @@ Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` 
 
 ### Adding Favorites
 
-| Method | How |
-|---|---|
-| From the QuickAccess window | Click the star icon on any asset row |
-| From the Project window | Right-click an asset > **Add to QuickAccess Favorites** |
+| Method                      | How                                                     |
+| --------------------------- | ------------------------------------------------------- |
+| From the QuickAccess window | Click the star icon on any asset row                    |
+| From the Project window     | Right-click an asset > **Add to QuickAccess Favorites** |
 
 ### Removing Favorites
 
-| Method | How |
-|---|---|
-| From the QuickAccess window | Click the star icon again to unstar |
-| From the Project window | Right-click an asset > **Remove from QuickAccess Favorites** |
+| Method                      | How                                                          |
+| --------------------------- | ------------------------------------------------------------ |
+| From the QuickAccess window | Click the star icon again to unstar                          |
+| From the Project window     | Right-click an asset > **Remove from QuickAccess Favorites** |
 
 ## Requirements
 
@@ -80,7 +80,7 @@ MIT
 1. 打开 Unity Package Manager（**Window > Package Manager**）
 2. 点击左上角的 **+** 按钮
 3. 选择 **Add package by git URL...**
-4. 输入仓库 URL：`https://github.com/YOUR_USERNAME/Unity-Favorites-Tool.git`
+4. 输入仓库 URL：`https://github.com/SHthemW/Unity-Favorites-Tool.git`
 5. 点击 **Add**
 
 ### 方法 2：手动安装
@@ -93,17 +93,17 @@ MIT
 
 ### 添加收藏
 
-| 方式 | 操作 |
-|---|---|
-| 在 QuickAccess 窗口中 | 点击资源行右侧的星标图标 |
-| 在 Project 窗口中 | 右键资源 > **Add to QuickAccess Favorites** |
+| 方式                  | 操作                                        |
+| --------------------- | ------------------------------------------- |
+| 在 QuickAccess 窗口中 | 点击资源行右侧的星标图标                    |
+| 在 Project 窗口中     | 右键资源 > **Add to QuickAccess Favorites** |
 
 ### 移除收藏
 
-| 方式 | 操作 |
-|---|---|
-| 在 QuickAccess 窗口中 | 再次点击星标图标取消收藏 |
-| 在 Project 窗口中 | 右键资源 > **Remove from QuickAccess Favorites** |
+| 方式                  | 操作                                             |
+| --------------------- | ------------------------------------------------ |
+| 在 QuickAccess 窗口中 | 再次点击星标图标取消收藏                         |
+| 在 Project 窗口中     | 右键资源 > **Remove from QuickAccess Favorites** |
 
 ## 环境要求
 
