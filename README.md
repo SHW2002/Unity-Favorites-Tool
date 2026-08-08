@@ -1,5 +1,7 @@
 # Unity QuickAccess - Favorites Tool
 
+[English](README.md) | [简体中文](README_CN.md)
+
 A lightweight Unity Editor window that provides quick access to your favorite and recently edited assets.
 
 <p align="center">
@@ -15,6 +17,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 - **Double Click** — Open the asset directly (e.g., open a script in your IDE, a prefab in Prefab Mode, etc.).
 - **Context Menu** — Right-click any asset in the Project window and choose **Add to QuickAccess Favorites** or **Remove from QuickAccess Favorites**.
 - **Resizable Split View** — Drag the splitter bar between the Favorites and Recent panels to adjust their sizes.
+- **Light and Dark Themes** — Automatically follows the active Unity Editor theme.
 - **Persistent Storage** — Favorites and recent lists are saved via `EditorPrefs` and survive Unity restarts.
 - **Auto Cleanup** — Deleted or missing assets are automatically removed from both lists.
 
@@ -34,7 +37,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 
 ### Option 2: Manual Install
 
-Copy the `QuickAccessWindow.cs` file into any `Editor` folder in your Unity project.
+Copy the repository's `Editor` folder and assembly definition into your Unity project.
 
 ## Usage
 
@@ -60,79 +63,8 @@ Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` 
 
 ## Requirements
 
-- Unity 2021.3 or later (uses C# 10 `new()` syntax)
+- Unity 2021.3 or later (uses C# 9 target-typed `new()` syntax)
 
 ## License
-
-MIT
-
-<br/>
-<br/>
-
-# Unity QuickAccess - 收藏夹工具
-
-一个轻量级的 Unity 编辑器窗口，提供对收藏资源和最近编辑资源的快速访问。
-
-<p align="center">
-  <img src="res/Main.png" width="40%" alt="Main Window">
-</p>
-
-## 功能特性
-
-- **收藏夹面板** — 将任意资源标星，固定到收藏夹以便随时访问。
-- **最近访问面板** — 自动追踪最近保存、导入或修改过的 50 个资源。
-- **星标切换** — 每个资源行右侧都有星标图标，点击即可添加/移除收藏。
-- **单击** — 选中资源并在 Project 窗口中高亮定位。
-- **双击** — 直接打开资源（如在 IDE 中打开脚本、进入 Prefab 编辑模式等）。
-- **右键菜单** — 在 Project 窗口中右键任意资源，选择 **Add to QuickAccess Favorites** 或 **Remove from QuickAccess Favorites**。
-- **可调节分割视图** — 拖拽收藏夹和最近访问面板之间的分割条来调整各区域大小。
-- **持久化存储** — 收藏列表和最近访问列表通过 `EditorPrefs` 保存，重启 Unity 后数据不丢失。
-- **自动清理** — 已删除或丢失的资源会自动从列表中移除。
-
-## 安装方法
-
-### 方法 1：通过 Git URL 安装（推荐）
-
-1. 打开 Unity Package Manager（**Window > Package Manager**）
-2. 点击左上角的 **+** 按钮
-3. 选择 **Add package by git URL...**
-4. 输入仓库 URL：`https://github.com/SHthemW/Unity-Favorites-Tool.git`
-5. 点击 **Add**
-
-<p align="center">
-  <img src="res/UPM.png" width="70%" alt="Unity Package Manager">
-</p>
-
-### 方法 2：手动安装
-
-将 `QuickAccessWindow.cs` 文件复制到 Unity 项目中任意 `Editor` 文件夹下即可。
-
-## 使用方法
-
-通过菜单打开窗口：**Tools > QuickAccess**（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
-
-### 添加收藏
-
-| 方式                  | 操作                                        |
-| --------------------- | ------------------------------------------- |
-| 在 QuickAccess 窗口中 | 点击资源行右侧的星标图标                    |
-| 在 Project 窗口中     | 右键资源 > **Add to QuickAccess Favorites** |
-
-<p align="center">
-  <img src="res/MenuOptions.png" width="60%" alt="MenuOptions">
-</p>
-
-### 移除收藏
-
-| 方式                  | 操作                                             |
-| --------------------- | ------------------------------------------------ |
-| 在 QuickAccess 窗口中 | 再次点击星标图标取消收藏                         |
-| 在 Project 窗口中     | 右键资源 > **Remove from QuickAccess Favorites** |
-
-## 环境要求
-
-- Unity 2021.3 或更高版本（使用了 C# 10 的 `new()` 语法）
-
-## 许可证
 
 MIT
