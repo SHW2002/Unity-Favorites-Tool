@@ -22,8 +22,15 @@ namespace UnityFavoriteTool
 
         private void OnEnable()
         {
+            s_Instance = this;
             EnsureLoaded();
             ApplyCurrentTheme();
+        }
+
+        private void OnDisable()
+        {
+            if (s_Instance == this)
+                s_Instance = null;
         }
 
         private void OnGUI()

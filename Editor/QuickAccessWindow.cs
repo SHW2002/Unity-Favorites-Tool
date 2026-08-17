@@ -18,6 +18,7 @@ namespace UnityFavoriteTool
         private static List<string> s_Favorites = new();
         private static List<string> s_Recent = new();
         private static bool s_Loaded;
+        private static QuickAccessWindow s_Instance;
 
         [MenuItem("Assets/Add to QuickAccess Favorites", false, 20)]
         private static void AddSelectionToFavorites()
@@ -36,8 +37,7 @@ namespace UnityFavoriteTool
             if (changed)
             {
                 SaveAll();
-                if (HasOpenInstances<QuickAccessWindow>())
-                    GetWindow<QuickAccessWindow>().Repaint();
+                RepaintOpenWindows();
             }
         }
 
@@ -69,8 +69,7 @@ namespace UnityFavoriteTool
             if (changed)
             {
                 SaveAll();
-                if (HasOpenInstances<QuickAccessWindow>())
-                    GetWindow<QuickAccessWindow>().Repaint();
+                RepaintOpenWindows();
             }
         }
 
@@ -156,8 +155,12 @@ namespace UnityFavoriteTool
             SaveAll();
 
             // 刷新已打开的窗口
-            if (HasOpenInstances<QuickAccessWindow>())
-                GetWindow<QuickAccessWindow>().Repaint();
+            RepaintOpenWindows();
+        }
+
+        private static void RepaintOpenWindows()
+        {
+            s_Instance?.Repaint();
         }
 
         #endregion
