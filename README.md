@@ -28,7 +28,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 1. Open Unity Package Manager (**Window > Package Manager**)
 2. Click the **+** button in the top-left corner
 3. Select **Add package by git URL...**
-4. Enter the repository URL: `https://github.com/SHthemW/Unity-Favorites-Tool.git`
+4. Enter the repository URL: `https://github.com/SHW2002/Unity-Favorites-Tool.git`
 5. Click **Add**
 
 <p align="center">
