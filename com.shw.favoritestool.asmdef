@@ -1,3 +1,7 @@
 {
-	"name": "com.shw.favoritestool"
+  "name": "com.shw.favoritestool",
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
 }

@@ -1,6 +1,6 @@
 {
   "name": "com.shw.quickaccess",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "QuickAccess Favorites",
   "description": "A lightweight Unity Editor window that provides quick access to your favorite and recently edited assets.",
   "unity": "2021.3",
