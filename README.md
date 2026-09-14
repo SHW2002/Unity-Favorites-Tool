@@ -41,7 +41,7 @@ Copy the repository's `Editor` folder and assembly definition into your Unity pr
 
 ## Usage
 
-Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` / `Cmd+Shift+Q`).
+Open the window via **Window > QuickAccess** or **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` / `Cmd+Shift+Q`).
 
 ### Adding Favorites
 

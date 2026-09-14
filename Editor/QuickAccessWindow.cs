@@ -87,6 +87,12 @@ namespace UnityFavoriteTool
             return false;
         }
 
+        [MenuItem("Window/QuickAccess")]
+        private static void OpenFromWindowMenu()
+        {
+            Open();
+        }
+
         [MenuItem("Tools/QuickAccess %#q")]
         private static void Open()
         {

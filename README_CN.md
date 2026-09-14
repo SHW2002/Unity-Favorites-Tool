@@ -28,7 +28,7 @@
 1. 打开 Unity Package Manager（**Window > Package Manager**）。
 2. 点击左上角的 **+** 按钮。
 3. 选择 **Add package by git URL...**。
-4. 输入仓库 URL：`https://github.com/SHthemW/Unity-Favorites-Tool.git`。
+4. 输入仓库 URL：`https://github.com/SHW2002/Unity-Favorites-Tool.git`。
 5. 点击 **Add**。
 
 <p align="center">
@@ -41,7 +41,7 @@
 
 ## 使用方法
 
-通过菜单打开窗口：**Tools > QuickAccess**（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
+通过菜单 **Window > QuickAccess** 或 **Tools > QuickAccess** 打开窗口（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
 
 ### 添加收藏
 
