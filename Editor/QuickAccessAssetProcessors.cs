@@ -26,7 +26,7 @@ namespace UnityFavoriteTool
             string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            QuickAccessWindow.EnsureLoaded();
+            QuickAccessWindow.RemoveDeletedAssets(deletedAssets);
 
             foreach (string path in importedAssets)
                 QuickAccessWindow.RecordAsset(path);

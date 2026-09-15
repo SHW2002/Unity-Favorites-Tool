@@ -18,8 +18,8 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 - **Context Menu** — Right-click any asset in the Project window and choose **Add to QuickAccess Favorites** or **Remove from QuickAccess Favorites**.
 - **Resizable Split View** — Drag the splitter bar between the Favorites and Recent panels to adjust their sizes.
 - **Light and Dark Themes** — Automatically follows the active Unity Editor theme.
-- **Persistent Storage** — Favorites and recent lists are saved via `EditorPrefs` and survive Unity restarts.
-- **Auto Cleanup** — Deleted or missing assets are automatically removed from both lists.
+- **Persistent Storage** — Favorites and recent lists are saved via `EditorPrefs`, isolated by project path, and survive Unity restarts. Existing shared preferences are copied once per project without modifying the original data.
+- **Auto Cleanup** — Explicit asset deletion events remove entries from both lists. Assets temporarily unavailable during startup or import are retained.
 
 ## Installation
 

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 
 namespace UnityFavoriteTool
@@ -11,13 +9,10 @@ namespace UnityFavoriteTool
     /// </summary>
     public sealed partial class QuickAccessWindow : EditorWindow
     {
-        private const string k_PrefsKeyFavorites = "QuickAccess_Favorites";
-        private const string k_PrefsKeyRecent = "QuickAccess_Recent";
         private const int k_MaxRecentCount = 50;
 
         private static List<string> s_Favorites = new();
         private static List<string> s_Recent = new();
-        private static bool s_Loaded;
         private static QuickAccessWindow s_Instance;
 
         [MenuItem("Assets/Add to QuickAccess Favorites", false, 20)]
@@ -36,7 +31,7 @@ namespace UnityFavoriteTool
             }
             if (changed)
             {
-                SaveAll();
+                SaveFavorites();
                 RepaintOpenWindows();
             }
         }
@@ -68,7 +63,7 @@ namespace UnityFavoriteTool
             }
             if (changed)
             {
-                SaveAll();
+                SaveFavorites();
                 RepaintOpenWindows();
             }
         }
@@ -101,47 +96,6 @@ namespace UnityFavoriteTool
             win.Show();
         }
 
-        #region 数据持久化
-
-        internal static void EnsureLoaded()
-        {
-            if (s_Loaded) return;
-            s_Loaded = true;
-
-            s_Favorites = DeserializeList(EditorPrefs.GetString(k_PrefsKeyFavorites, ""));
-            s_Recent = DeserializeList(EditorPrefs.GetString(k_PrefsKeyRecent, ""));
-
-            // 清理已不存在的资源
-            s_Favorites.RemoveAll(p => string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(p)));
-            s_Recent.RemoveAll(p => string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(p)));
-        }
-
-        private static void SaveAll()
-        {
-            EditorPrefs.SetString(k_PrefsKeyFavorites, SerializeList(s_Favorites));
-            EditorPrefs.SetString(k_PrefsKeyRecent, SerializeList(s_Recent));
-        }
-
-        private static string SerializeList(List<string> list) => string.Join("|", list);
-
-        private static List<string> DeserializeList(string data)
-        {
-            if (string.IsNullOrEmpty(data)) return new List<string>();
-            return data.Split('|').Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
-        }
-
-        private static void ToggleFavorite(string assetPath)
-        {
-            if (s_Favorites.Contains(assetPath))
-                s_Favorites.Remove(assetPath);
-            else
-                s_Favorites.Insert(0, assetPath);
-
-            SaveAll();
-        }
-
-        #endregion
-
         #region 最近访问记录
 
         internal static void RecordAsset(string assetPath)
@@ -158,7 +112,7 @@ namespace UnityFavoriteTool
             if (s_Recent.Count > k_MaxRecentCount)
                 s_Recent.RemoveRange(k_MaxRecentCount, s_Recent.Count - k_MaxRecentCount);
 
-            SaveAll();
+            SaveRecent();
 
             // 刷新已打开的窗口
             RepaintOpenWindows();
