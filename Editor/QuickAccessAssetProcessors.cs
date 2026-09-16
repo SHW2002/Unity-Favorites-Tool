@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEditor;
 
 namespace UnityFavoriteTool
@@ -9,8 +10,7 @@ namespace UnityFavoriteTool
     {
         private static string[] OnWillSaveAssets(string[] paths)
         {
-            foreach (string path in paths)
-                QuickAccessWindow.RecordAsset(path);
+            QuickAccessWindow.RecordAssets(paths);
             return paths;
         }
     }
@@ -26,10 +26,8 @@ namespace UnityFavoriteTool
             string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            QuickAccessWindow.EnsureLoaded();
-
-            foreach (string path in importedAssets)
-                QuickAccessWindow.RecordAsset(path);
+            QuickAccessWindow.RecordAssets(importedAssets.Concat(movedAssets));
+            QuickAccessWindow.RefreshAssetReferences();
         }
     }
 }

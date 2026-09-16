@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
 
 namespace UnityFavoriteTool
 {
@@ -11,14 +11,12 @@ namespace UnityFavoriteTool
     /// </summary>
     public sealed partial class QuickAccessWindow : EditorWindow
     {
-        private const string k_PrefsKeyFavorites = "QuickAccess_Favorites";
-        private const string k_PrefsKeyRecent = "QuickAccess_Recent";
-        private const int k_MaxRecentCount = 50;
+        private const int k_MaxRecentCount = QuickAccessSettings.MaxRecentCount;
 
+        // Resource identity is a GUID; paths are resolved only when needed.
         private static List<string> s_Favorites = new();
         private static List<string> s_Recent = new();
         private static bool s_Loaded;
-        private static QuickAccessWindow s_Instance;
 
         [MenuItem("Assets/Add to QuickAccess Favorites", false, 20)]
         private static void AddSelectionToFavorites()
@@ -28,9 +26,9 @@ namespace UnityFavoriteTool
             foreach (var guid in Selection.assetGUIDs)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!string.IsNullOrEmpty(path) && !s_Favorites.Contains(path))
+                if (!string.IsNullOrEmpty(path) && !s_Favorites.Contains(guid))
                 {
-                    s_Favorites.Insert(0, path);
+                    s_Favorites.Insert(0, guid);
                     changed = true;
                 }
             }
@@ -49,7 +47,7 @@ namespace UnityFavoriteTool
             foreach (var guid in Selection.assetGUIDs)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!string.IsNullOrEmpty(path) && !s_Favorites.Contains(path))
+                if (!string.IsNullOrEmpty(path) && !s_Favorites.Contains(guid))
                     return true;
             }
             return false;
@@ -63,7 +61,7 @@ namespace UnityFavoriteTool
             foreach (var guid in Selection.assetGUIDs)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!string.IsNullOrEmpty(path) && s_Favorites.Remove(path))
+                if (!string.IsNullOrEmpty(path) && s_Favorites.Remove(guid))
                     changed = true;
             }
             if (changed)
@@ -81,7 +79,7 @@ namespace UnityFavoriteTool
             foreach (var guid in Selection.assetGUIDs)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!string.IsNullOrEmpty(path) && s_Favorites.Contains(path))
+                if (!string.IsNullOrEmpty(path) && s_Favorites.Contains(guid))
                     return true;
             }
             return false;
@@ -100,67 +98,99 @@ namespace UnityFavoriteTool
         internal static void EnsureLoaded()
         {
             if (s_Loaded) return;
+            var settings = QuickAccessSettings.instance;
+            settings.EnsureInitialized();
+            s_Favorites = settings.Favorites.ToList();
+            s_Recent = settings.Recent.ToList();
             s_Loaded = true;
-
-            s_Favorites = DeserializeList(EditorPrefs.GetString(k_PrefsKeyFavorites, ""));
-            s_Recent = DeserializeList(EditorPrefs.GetString(k_PrefsKeyRecent, ""));
-
-            // 清理已不存在的资源
-            s_Favorites.RemoveAll(p => string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(p)));
-            s_Recent.RemoveAll(p => string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(p)));
         }
 
         private static void SaveAll()
         {
-            EditorPrefs.SetString(k_PrefsKeyFavorites, SerializeList(s_Favorites));
-            EditorPrefs.SetString(k_PrefsKeyRecent, SerializeList(s_Recent));
+            QuickAccessSettings.instance.SaveLists(s_Favorites, s_Recent);
         }
 
-        private static string SerializeList(List<string> list) => string.Join("|", list);
-
-        private static List<string> DeserializeList(string data)
+        private static void ToggleFavorite(string assetGuid)
         {
-            if (string.IsNullOrEmpty(data)) return new List<string>();
-            return data.Split('|').Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
-        }
-
-        private static void ToggleFavorite(string assetPath)
-        {
-            if (s_Favorites.Contains(assetPath))
-                s_Favorites.Remove(assetPath);
+            if (s_Favorites.Contains(assetGuid))
+                s_Favorites.Remove(assetGuid);
             else
-                s_Favorites.Insert(0, assetPath);
+                s_Favorites.Insert(0, assetGuid);
 
             SaveAll();
+            RepaintOpenWindows();
+        }
+
+        // A null destination means the end. Resolve GUIDs at commit time so a
+        // moved/renamed resource still identifies the same favorite.
+        private static void MoveFavorite(string assetGuid, string beforeGuid)
+        {
+            int source = s_Favorites.IndexOf(assetGuid);
+            int destination = beforeGuid == null ? s_Favorites.Count : s_Favorites.IndexOf(beforeGuid);
+            if (source < 0 || destination < 0 || source == destination) return;
+            if (source < destination) destination--;
+            if (source == destination) return;
+
+            s_Favorites.RemoveAt(source);
+            s_Favorites.Insert(destination, assetGuid);
+            SaveAll();
+            RepaintOpenWindows();
         }
 
         #endregion
 
         #region 最近访问记录
 
-        internal static void RecordAsset(string assetPath)
+        internal static void RecordAsset(string assetPath) => RecordAssets(new[] { assetPath });
+
+        internal static void RecordAssets(IEnumerable<string> assetPaths)
         {
-            if (string.IsNullOrEmpty(assetPath) || assetPath.StartsWith("Packages/")) return;
-            // 忽略 .meta 和 ProjectSettings
-            if (assetPath.EndsWith(".meta") || assetPath.StartsWith("ProjectSettings/")) return;
-
             EnsureLoaded();
+            bool changed = false;
+            foreach (string assetPath in assetPaths)
+            {
+                if (string.IsNullOrEmpty(assetPath) || !assetPath.StartsWith("Assets/") || assetPath.EndsWith(".meta"))
+                    continue;
+                string guid = AssetDatabase.AssetPathToGUID(assetPath, AssetPathToGUIDOptions.OnlyExistingAssets);
+                if (string.IsNullOrEmpty(guid) || (s_Recent.Count > 0 && s_Recent[0] == guid)) continue;
 
-            s_Recent.Remove(assetPath);
-            s_Recent.Insert(0, assetPath);
+                s_Recent.Remove(guid);
+                s_Recent.Insert(0, guid);
+                changed = true;
+            }
 
             if (s_Recent.Count > k_MaxRecentCount)
                 s_Recent.RemoveRange(k_MaxRecentCount, s_Recent.Count - k_MaxRecentCount);
 
-            SaveAll();
+            if (changed) SaveAll();
 
             // 刷新已打开的窗口
             RepaintOpenWindows();
         }
 
+        internal static void RefreshAssetReferences()
+        {
+            EnsureLoaded();
+            // Run after asset processing, not while the database is loading.
+            bool changed = s_Favorites.RemoveAll(IsMissingAsset) > 0;
+            changed |= s_Recent.RemoveAll(IsMissingAsset) > 0;
+            if (changed) SaveAll();
+            RepaintOpenWindows();
+        }
+
+        private static bool IsMissingAsset(string guid)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            return string.IsNullOrEmpty(path) ||
+                AssetDatabase.AssetPathToGUID(path, AssetPathToGUIDOptions.OnlyExistingAssets) != guid;
+        }
+
         private static void RepaintOpenWindows()
         {
-            s_Instance?.Repaint();
+            // GetWindow focuses an existing EditorWindow. Finding the open instances
+            // directly lets background asset imports repaint without stealing focus.
+            foreach (var window in Resources.FindObjectsOfTypeAll<QuickAccessWindow>())
+                window.Repaint();
         }
 
         #endregion

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace UnityFavoriteTool
@@ -11,6 +12,12 @@ namespace UnityFavoriteTool
         private const float k_ToggleWidth = 20f;
         private const float k_IconSize = 16f;
         private const float k_SplitterHeight = 6f;
+        private const float k_HandleWidth = 18f;
+        private static readonly GUIContent s_DragHandleTooltip = new GUIContent("", "Drag to reorder favorites");
+
+        private string m_DraggedFavorite;
+        private int m_FavoriteDragControl;
+        private double m_LastDragRepaint;
 
         private Vector2 m_FavScrollPos;
         private Vector2 m_RecentScrollPos;
@@ -22,20 +29,27 @@ namespace UnityFavoriteTool
 
         private void OnEnable()
         {
-            s_Instance = this;
             EnsureLoaded();
             ApplyCurrentTheme();
         }
 
-        private void OnDisable()
+        private void OnDisable() => CancelFavoriteDrag();
+        private void OnLostFocus() => CancelFavoriteDrag();
+
+        private void CancelFavoriteDrag()
         {
-            if (s_Instance == this)
-                s_Instance = null;
+            if (m_FavoriteDragControl != 0 && GUIUtility.hotControl == m_FavoriteDragControl)
+                GUIUtility.hotControl = 0;
+            m_DraggedFavorite = null;
+            m_FavoriteDragControl = 0;
+            Repaint();
         }
 
         private void OnGUI()
         {
             EnsureCurrentThemeAndStyles();
+            if (m_DraggedFavorite != null && !s_Favorites.Contains(m_DraggedFavorite))
+                CancelFavoriteDrag();
 
             float favoriteHeight = position.height * m_SplitRatio;
             float recentHeight = position.height - favoriteHeight - k_SplitterHeight;
@@ -102,31 +116,65 @@ namespace UnityFavoriteTool
             }
             else
             {
-                scrollPosition = GUILayout.BeginScrollView(scrollPosition);
-                DrawAssetList(assets);
-                GUILayout.EndScrollView();
+                var viewport = GUILayoutUtility.GetRect(0, 0, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                var visibleAssets = assets.FindAll(guid => AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid)) != null);
+                float contentHeight = visibleAssets.Count * k_RowHeight;
+                float contentWidth = Mathf.Max(0, viewport.width - (contentHeight > viewport.height ? 16f : 0f));
+                var contentRect = new Rect(0, 0, contentWidth, contentHeight);
+                if (isFavoriteSection)
+                    HandleFavoriteDrag(viewport, contentWidth, contentHeight, visibleAssets, ref scrollPosition);
+                scrollPosition = GUI.BeginScrollView(viewport, scrollPosition, contentRect);
+                DrawAssetList(visibleAssets, contentWidth, isFavoriteSection);
+                if (isFavoriteSection && m_DraggedFavorite != null &&
+                    new Rect(0, scrollPosition.y, contentWidth, viewport.height).Contains(Event.current.mousePosition))
+                {
+                    int slot = GetInsertionSlot(Event.current.mousePosition.y, visibleAssets.Count);
+                    float lineY = Mathf.Clamp(slot * k_RowHeight, 1f, Mathf.Max(1f, contentHeight - 1f));
+                    EditorGUI.DrawRect(new Rect(0, lineY - 1f, contentWidth, 2f), m_Theme.FavoriteTint);
+                }
+                GUI.EndScrollView();
             }
 
             GUILayout.EndVertical();
         }
 
-        private void DrawAssetList(List<string> assets)
+        private void DrawAssetList(List<string> assets, float width, bool isFavoriteSection)
         {
-            foreach (string assetPath in assets.ToArray())
+            for (int index = 0; index < assets.Count; index++)
             {
+                string assetGuid = assets[index];
+                string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
                 var asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
                 if (asset == null) continue;
 
-                var rowRect = GUILayoutUtility.GetRect(0, k_RowHeight, GUILayout.ExpandWidth(true));
+                var rowRect = new Rect(0, index * k_RowHeight, width, k_RowHeight);
                 if (rowRect.Contains(Event.current.mousePosition))
                     EditorGUI.DrawRect(rowRect, m_Theme.Hover);
                 if (Selection.activeObject == asset)
                     EditorGUI.DrawRect(rowRect, m_Theme.Selection);
 
+                float handleSpace = isFavoriteSection ? k_HandleWidth : 0f;
+                if (isFavoriteSection)
+                {
+                    var handleRect = new Rect(rowRect.x, rowRect.y, k_HandleWidth, k_RowHeight);
+                    int control = GUIUtility.GetControlID(FocusType.Passive);
+                    DrawNativeDragHandle(handleRect, index, Selection.activeObject == asset);
+                    EditorGUIUtility.AddCursorRect(handleRect, MouseCursor.Pan);
+                    if (Event.current.type == EventType.MouseDown && Event.current.button == 0 &&
+                        handleRect.Contains(Event.current.mousePosition))
+                    {
+                        m_DraggedFavorite = assetGuid;
+                        m_FavoriteDragControl = control;
+                        GUIUtility.hotControl = control;
+                        m_LastDragRepaint = EditorApplication.timeSinceStartup;
+                        Event.current.Use();
+                    }
+                }
+
                 var icon = AssetDatabase.GetCachedIcon(assetPath) as Texture2D
                            ?? EditorGUIUtility.ObjectContent(asset, asset.GetType()).image;
                 var iconRect = new Rect(
-                    rowRect.x + 4f,
+                    rowRect.x + handleSpace + 4f,
                     rowRect.y + (k_RowHeight - k_IconSize) * 0.5f,
                     k_IconSize,
                     k_IconSize);
@@ -143,7 +191,7 @@ namespace UnityFavoriteTool
                     : $"{fileName}  <color={m_Theme.PathColor}>{directory}</color>";
                 GUI.Label(new Rect(labelX, rowRect.y, labelWidth, k_RowHeight), displayText, m_AssetLabelStyle);
 
-                bool isFavorite = s_Favorites.Contains(assetPath);
+                bool isFavorite = s_Favorites.Contains(assetGuid);
                 var toggleRect = new Rect(
                     rowRect.xMax - k_ToggleWidth - 4f,
                     rowRect.y + (k_RowHeight - k_IconSize) * 0.5f,
@@ -152,11 +200,11 @@ namespace UnityFavoriteTool
                 var previousColor = GUI.color;
                 GUI.color = isFavorite ? m_Theme.FavoriteTint : m_Theme.InactiveFavoriteTint;
                 if (GUI.Button(toggleRect, m_Theme.GetFavoriteIcon(isFavorite), GUIStyle.none))
-                    ToggleFavorite(assetPath);
+                    ToggleFavorite(assetGuid);
                 GUI.color = previousColor;
 
-                var clickRect = new Rect(rowRect.x, rowRect.y, rowRect.width - toggleSpace, rowRect.height);
-                if (Event.current.type != EventType.MouseDown || !clickRect.Contains(Event.current.mousePosition))
+                var clickRect = new Rect(rowRect.x + handleSpace, rowRect.y, Mathf.Max(0, rowRect.width - toggleSpace - handleSpace), rowRect.height);
+                if (Event.current.type != EventType.MouseDown || Event.current.button != 0 || !clickRect.Contains(Event.current.mousePosition))
                     continue;
 
                 if (Event.current.clickCount == 2)
@@ -168,6 +216,65 @@ namespace UnityFavoriteTool
                 }
                 Event.current.Use();
             }
+        }
+
+        private void DrawNativeDragHandle(Rect rect, int index, bool selected)
+        {
+            // Use the same renderer as Unity's IMGUI reorderable lists instead
+            // of a font glyph or a copied built-in texture/style name.
+            // UnityEditorInternal is not a version-stable public API; keep the
+            // dependency here so future editor API changes have one call site.
+            ReorderableList.defaultBehaviours.DrawElementDraggingHandle(
+                rect, index, selected, selected && focusedWindow == this, true);
+            GUI.Label(rect, s_DragHandleTooltip, GUIStyle.none);
+        }
+
+        private static int GetInsertionSlot(float contentY, int count) =>
+            Mathf.Clamp(Mathf.FloorToInt((contentY + k_RowHeight * 0.5f) / k_RowHeight), 0, count);
+
+        private void HandleFavoriteDrag(Rect viewport, float contentWidth, float contentHeight,
+            List<string> assets, ref Vector2 scrollPosition)
+        {
+            if (m_DraggedFavorite == null) return;
+            var evt = Event.current;
+            if (!s_Favorites.Contains(m_DraggedFavorite) || GUIUtility.hotControl != m_FavoriteDragControl ||
+                (evt.type == EventType.KeyDown && evt.keyCode == KeyCode.Escape))
+            {
+                CancelFavoriteDrag();
+                if (evt.type == EventType.KeyDown) evt.Use();
+                return;
+            }
+
+            var dropRect = new Rect(viewport.x, viewport.y, contentWidth, viewport.height);
+            bool inside = dropRect.Contains(evt.mousePosition);
+            if (evt.type == EventType.MouseUp && evt.button == 0)
+            {
+                if (inside)
+                {
+                    int slot = GetInsertionSlot(evt.mousePosition.y - viewport.y + scrollPosition.y, assets.Count);
+                    MoveFavorite(m_DraggedFavorite, slot < assets.Count ? assets[slot] : null);
+                }
+                CancelFavoriteDrag();
+                evt.Use();
+                return;
+            }
+
+            if (evt.type == EventType.Repaint)
+            {
+                double now = EditorApplication.timeSinceStartup;
+                float elapsed = Mathf.Min(0.05f, (float)(now - m_LastDragRepaint));
+                m_LastDragRepaint = now;
+                if (inside)
+                {
+                    float edge = Mathf.Min(24f, viewport.height * 0.25f);
+                    float direction = evt.mousePosition.y < viewport.yMin + edge ? -1f :
+                        evt.mousePosition.y > viewport.yMax - edge ? 1f : 0f;
+                    scrollPosition.y = Mathf.Clamp(scrollPosition.y + direction * 240f * elapsed,
+                        0, Mathf.Max(0, contentHeight - viewport.height));
+                }
+            }
+            Repaint();
+            if (evt.type == EventType.MouseDrag) evt.Use();
         }
 
         private void HandleSplitterDrag(Rect splitterRect)
