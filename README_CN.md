@@ -70,6 +70,11 @@
 长列表拖到面板上、下边缘时会自动滚动。按 Esc、切换窗口或在列表区域外松开可取消拖动。
 顺序会自动保存，重启 Unity 后仍然保留。新收藏仍添加到最前面，Recent 列表不参与手动排序。
 
+### 搜索
+
+顶部搜索栏同时筛选 Favorites 和 Recent，并保留原有顺序。支持名称（`Player`）、类型（`t:prefab`、`t:SceneAsset`）和组合查询（`Player t:prefab`），采用 Unity `AssetDatabase.FindAssets` 的查询语法，不区分大小写。
+点击 **Type** 可快速选择场景、Prefab、材质、纹理、脚本、ScriptableObject、音频或动画。选择类型会替换已有的 `t:` 条件并保留名称；**All Types** 仅移除类型条件。搜索框的清除按钮会清除整个查询。
+搜索范围仅限这两个列表已有的条目。筛选期间需清除搜索后才能拖拽排序，选择、打开和收藏切换仍可使用。输入短暂延迟后缓存查询结果，资源变化后自动更新。搜索内容属于窗口状态，不新增 EditorPrefs，也不改变收藏配置格式。
 ### 配置位置与旧数据迁移
 
 配置通过 `ScriptableSingleton` 保存到项目根目录下的 `UserSettings/QuickAccessSettings.asset`，不在插件目录内，也不写入 PlayerPrefs。

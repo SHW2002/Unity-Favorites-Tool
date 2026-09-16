@@ -71,6 +71,11 @@ Long lists scroll automatically when dragging near the top or bottom edge. Press
 switch windows, or release outside the list to cancel. The order is saved automatically
 and survives Unity restarts. New favorites still appear first; Recent keeps its automatic order.
 
+### Searching
+
+The toolbar filters Favorites and Recent together without changing their order. Search by name (`Player`), type (`t:prefab`, `t:SceneAsset`), or both (`Player t:prefab`). Queries use Unity's `AssetDatabase.FindAssets` syntax and are case insensitive.
+Use **Type** to select Scenes, Prefabs, Materials, Textures, Scripts, ScriptableObjects, Audio or Animations. A selection replaces existing `t:` filters and preserves the name query; **All Types** removes only type filters. The search field's clear button removes the entire query.
+Search is limited to entries already in these lists. While filtering, clear the search to reorder favorites; selection, opening and star toggles remain available. Queries are cached after a short typing delay and refreshed after project asset changes. Search text belongs to the window state, with no new EditorPrefs keys or changes to the favorites settings format.
 ### Storage and Legacy Migration
 
 `ScriptableSingleton` saves preferences in `UserSettings/QuickAccessSettings.asset` relative to the project root, outside the plugin folder. PlayerPrefs is not used.

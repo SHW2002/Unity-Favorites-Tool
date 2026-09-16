@@ -31,9 +31,14 @@ namespace UnityFavoriteTool
         {
             EnsureLoaded();
             ApplyCurrentTheme();
+            InitializeSearch();
         }
 
-        private void OnDisable() => CancelFavoriteDrag();
+        private void OnDisable()
+        {
+            ShutdownSearch();
+            CancelFavoriteDrag();
+        }
         private void OnLostFocus() => CancelFavoriteDrag();
 
         private void CancelFavoriteDrag()
@@ -51,8 +56,10 @@ namespace UnityFavoriteTool
             if (m_DraggedFavorite != null && !s_Favorites.Contains(m_DraggedFavorite))
                 CancelFavoriteDrag();
 
-            float favoriteHeight = position.height * m_SplitRatio;
-            float recentHeight = position.height - favoriteHeight - k_SplitterHeight;
+            DrawSearchToolbar();
+            float availableHeight = Mathf.Max(0, position.height - k_SearchToolbarHeight - k_SplitterHeight);
+            float favoriteHeight = availableHeight * m_SplitRatio;
+            float recentHeight = availableHeight - favoriteHeight;
 
             DrawSection("Favorites", ref m_FavScrollPos, s_Favorites, favoriteHeight, true);
 
@@ -105,23 +112,26 @@ namespace UnityFavoriteTool
                 headerRect.y + 1f,
                 headerRect.width - 8f,
                 headerRect.height);
-            GUI.Label(headerLabelRect, title, m_HeaderStyle);
+            GUI.Label(headerLabelRect, new GUIContent(title,
+                isFavoriteSection && IsSearching ? "Clear search to reorder favorites" : ""), m_HeaderStyle);
 
-            if (assets.Count == 0)
+            var visibleAssets = GetVisibleAssets(assets);
+            if (visibleAssets.Count == 0)
             {
                 GUILayout.FlexibleSpace();
                 string emptyText = isFavoriteSection ? "No favorites" : "No recent access";
+                if (assets.Count > 0 && IsSearching)
+                    emptyText = m_SearchDirty ? "Searching..." : "No matching assets";
                 EditorGUILayout.LabelField(emptyText, EditorStyles.centeredGreyMiniLabel);
                 GUILayout.FlexibleSpace();
             }
             else
             {
                 var viewport = GUILayoutUtility.GetRect(0, 0, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                var visibleAssets = assets.FindAll(guid => AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid)) != null);
                 float contentHeight = visibleAssets.Count * k_RowHeight;
                 float contentWidth = Mathf.Max(0, viewport.width - (contentHeight > viewport.height ? 16f : 0f));
                 var contentRect = new Rect(0, 0, contentWidth, contentHeight);
-                if (isFavoriteSection)
+                if (isFavoriteSection && !IsSearching)
                     HandleFavoriteDrag(viewport, contentWidth, contentHeight, visibleAssets, ref scrollPosition);
                 scrollPosition = GUI.BeginScrollView(viewport, scrollPosition, contentRect);
                 DrawAssetList(visibleAssets, contentWidth, isFavoriteSection);
@@ -158,9 +168,13 @@ namespace UnityFavoriteTool
                 {
                     var handleRect = new Rect(rowRect.x, rowRect.y, k_HandleWidth, k_RowHeight);
                     int control = GUIUtility.GetControlID(FocusType.Passive);
-                    DrawNativeDragHandle(handleRect, index, Selection.activeObject == asset);
-                    EditorGUIUtility.AddCursorRect(handleRect, MouseCursor.Pan);
-                    if (Event.current.type == EventType.MouseDown && Event.current.button == 0 &&
+                    using (new EditorGUI.DisabledScope(IsSearching))
+                        DrawNativeDragHandle(handleRect, index, Selection.activeObject == asset);
+                    if (IsSearching)
+                        GUI.Label(handleRect, new GUIContent("", "Clear search to reorder favorites"), GUIStyle.none);
+                    else
+                        EditorGUIUtility.AddCursorRect(handleRect, MouseCursor.Pan);
+                    if (!IsSearching && Event.current.type == EventType.MouseDown && Event.current.button == 0 &&
                         handleRect.Contains(Event.current.mousePosition))
                     {
                         m_DraggedFavorite = assetGuid;
@@ -287,7 +301,8 @@ namespace UnityFavoriteTool
             }
             if (m_Dragging && currentEvent.type == EventType.MouseDrag)
             {
-                m_SplitRatio = Mathf.Clamp(currentEvent.mousePosition.y / position.height, 0.1f, 0.8f);
+                m_SplitRatio = Mathf.Clamp((currentEvent.mousePosition.y - k_SearchToolbarHeight) /
+                    Mathf.Max(1, position.height - k_SearchToolbarHeight - k_SplitterHeight), 0.1f, 0.8f);
                 Repaint();
                 currentEvent.Use();
             }
