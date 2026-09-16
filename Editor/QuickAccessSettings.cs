@@ -18,12 +18,23 @@ namespace UnityFavoriteTool
 
         internal IReadOnlyList<string> Favorites => m_Favorites;
         internal IReadOnlyList<string> Recent => m_Recent;
+        internal bool IsInitialized => m_Initialized;
 
         internal void EnsureInitialized()
         {
             if (m_Initialized) return;
-            ImportLegacyPaths(EditorPrefs.GetString(LegacyFavoritesKey, ""),
-                EditorPrefs.GetString(LegacyRecentKey, ""));
+            ImportLegacyPaths(ReadLegacyPreference(LegacyFavoritesKey),
+                ReadLegacyPreference(LegacyRecentKey));
+        }
+
+        private static string ReadLegacyPreference(string legacyKey)
+        {
+            // Upstream 1.0.2 isolated path-based lists with this exact key format.
+            // An existing empty project value must override the shared legacy list.
+            string projectKey = $"{legacyKey}_{Hash128.Compute(Application.dataPath.Replace('\\', '/'))}";
+            return EditorPrefs.HasKey(projectKey)
+                ? EditorPrefs.GetString(projectKey, "")
+                : EditorPrefs.GetString(legacyKey, "");
         }
 
         private void ImportLegacyPaths(string favorites, string recent)

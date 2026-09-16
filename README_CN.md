@@ -20,7 +20,7 @@
 - **浅色与深色主题** — 自动跟随当前 Unity 编辑器主题。
 - **项目内存储** — 收藏、排序和最近访问记录保存到 `UserSettings/QuickAccessSettings.asset`，各项目独立，重启 Unity 后保留。
 - **稳定的资源引用** — 使用资源 GUID，资源或文件夹改名、移动后仍保留收藏（需要保留 `.meta` 文件）。
-- **自动清理** — 已删除或丢失的资源会自动从列表中移除。
+- **自动清理** — 收到删除事件后，等待资源导入完成再清理；启动和普通导入不会清除暂时不可用的收藏。
 
 ## 安装方法
 
@@ -29,7 +29,7 @@
 1. 打开 Unity Package Manager（**Window > Package Manager**）。
 2. 点击左上角的 **+** 按钮。
 3. 选择 **Add package by git URL...**。
-4. 输入仓库 URL：`https://github.com/SHthemW/Unity-Favorites-Tool.git`。
+4. 输入仓库 URL：`https://github.com/SHW2002/Unity-Favorites-Tool.git`。
 5. 点击 **Add**。
 
 <p align="center">
@@ -42,7 +42,7 @@
 
 ## 使用方法
 
-通过菜单打开窗口：**Tools > QuickAccess**（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
+通过菜单 **Window > QuickAccess** 或 **Tools > QuickAccess** 打开窗口（快捷键：`Ctrl+Shift+Q` / `Cmd+Shift+Q`）。
 
 ### 添加收藏
 
@@ -75,15 +75,16 @@
 顶部搜索栏同时筛选 Favorites 和 Recent，并保留原有顺序。支持名称（`Player`）、类型（`t:prefab`、`t:SceneAsset`）和组合查询（`Player t:prefab`），采用 Unity `AssetDatabase.FindAssets` 的查询语法，不区分大小写。
 点击 **Type** 可快速选择场景、Prefab、材质、纹理、脚本、ScriptableObject、音频或动画。选择类型会替换已有的 `t:` 条件并保留名称；**All Types** 仅移除类型条件。搜索框的清除按钮会清除整个查询。
 搜索范围仅限这两个列表已有的条目。筛选期间需清除搜索后才能拖拽排序，选择、打开和收藏切换仍可使用。输入短暂延迟后缓存查询结果，资源变化后自动更新。搜索内容属于窗口状态，不新增 EditorPrefs，也不改变收藏配置格式。
+
 ### 配置位置与旧数据迁移
 
 配置通过 `ScriptableSingleton` 保存到项目根目录下的 `UserSettings/QuickAccessSettings.asset`，不在插件目录内，也不写入 PlayerPrefs。
 移动或改名整个项目时，请一起保留 `UserSettings`；删除整个项目时配置也随之删除。仅卸载插件时，这个文件会保留，可自行删除。
 建议在项目根目录的 Git 忽略规则中加入 `/UserSettings/`，或在 SVN 中忽略该目录。它是个人工作区偏好，不建议团队共用；换电脑时需要额外复制该文件。
 
-首次生成配置时，会从旧 `EditorPrefs` 的 `QuickAccess_Favorites` 和 `QuickAccess_Recent` 中迁入当前项目可解析的资源，保留顺序并转换为 GUID。
+首次生成配置时，优先读取上游 1.0.2 的项目专属 EditorPrefs（包括主动清空的列表）；不存在项目专属键时才回退到共享旧键。迁移会等待资源导入完成。选中的路径列表仅迁入当前项目可解析的资源，保留顺序并转换为 GUID。共享旧键为 `QuickAccess_Favorites` 和 `QuickAccess_Recent`。
 旧数据没有项目标识，只能按当前项目中的路径匹配。之后只使用项目配置，清空收藏后重启不会重新导入旧收藏；删除配置文件则会重新触发迁移。
-旧注册表键不会被写入或自动删除，因为其他项目可能仍需读取它们。确认所有相关项目已迁移后，才适合清理这两个旧键。
+旧注册表键不会被写入或自动删除，因为其他项目可能仍需读取它们。确认所有相关项目已迁移后，才适合清理共享及项目专属旧键。
 
 ## 环境要求
 

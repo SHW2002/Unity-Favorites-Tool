@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+
 using UnityEditor;
 using UnityEngine;
 
@@ -16,12 +16,13 @@ namespace UnityFavoriteTool
         // Resource identity is a GUID; paths are resolved only when needed.
         private static List<string> s_Favorites = new();
         private static List<string> s_Recent = new();
-        private static bool s_Loaded;
+
 
         [MenuItem("Assets/Add to QuickAccess Favorites", false, 20)]
         private static void AddSelectionToFavorites()
         {
             EnsureLoaded();
+            if (!s_Loaded) return;
             bool changed = false;
             foreach (var guid in Selection.assetGUIDs)
             {
@@ -57,6 +58,7 @@ namespace UnityFavoriteTool
         private static void RemoveSelectionFromFavorites()
         {
             EnsureLoaded();
+            if (!s_Loaded) return;
             bool changed = false;
             foreach (var guid in Selection.assetGUIDs)
             {
@@ -85,6 +87,9 @@ namespace UnityFavoriteTool
             return false;
         }
 
+        [MenuItem("Window/QuickAccess")]
+        private static void OpenFromWindowMenu() => Open();
+
         [MenuItem("Tools/QuickAccess %#q")]
         private static void Open()
         {
@@ -93,52 +98,6 @@ namespace UnityFavoriteTool
             win.Show();
         }
 
-        #region 数据持久化
-
-        internal static void EnsureLoaded()
-        {
-            if (s_Loaded) return;
-            var settings = QuickAccessSettings.instance;
-            settings.EnsureInitialized();
-            s_Favorites = settings.Favorites.ToList();
-            s_Recent = settings.Recent.ToList();
-            s_Loaded = true;
-        }
-
-        private static void SaveAll()
-        {
-            QuickAccessSettings.instance.SaveLists(s_Favorites, s_Recent);
-        }
-
-        private static void ToggleFavorite(string assetGuid)
-        {
-            if (s_Favorites.Contains(assetGuid))
-                s_Favorites.Remove(assetGuid);
-            else
-                s_Favorites.Insert(0, assetGuid);
-
-            SaveAll();
-            RepaintOpenWindows();
-        }
-
-        // A null destination means the end. Resolve GUIDs at commit time so a
-        // moved/renamed resource still identifies the same favorite.
-        private static void MoveFavorite(string assetGuid, string beforeGuid)
-        {
-            int source = s_Favorites.IndexOf(assetGuid);
-            int destination = beforeGuid == null ? s_Favorites.Count : s_Favorites.IndexOf(beforeGuid);
-            if (source < 0 || destination < 0 || source == destination) return;
-            if (source < destination) destination--;
-            if (source == destination) return;
-
-            s_Favorites.RemoveAt(source);
-            s_Favorites.Insert(destination, assetGuid);
-            SaveAll();
-            RepaintOpenWindows();
-        }
-
-        #endregion
-
         #region 最近访问记录
 
         internal static void RecordAsset(string assetPath) => RecordAssets(new[] { assetPath });
@@ -146,6 +105,7 @@ namespace UnityFavoriteTool
         internal static void RecordAssets(IEnumerable<string> assetPaths)
         {
             EnsureLoaded();
+            if (!s_Loaded) return;
             bool changed = false;
             foreach (string assetPath in assetPaths)
             {
@@ -171,6 +131,7 @@ namespace UnityFavoriteTool
         internal static void RefreshAssetReferences()
         {
             EnsureLoaded();
+            if (!s_Loaded || EditorApplication.isUpdating || EditorApplication.isCompiling) return;
             // Run after asset processing, not while the database is loading.
             bool changed = s_Favorites.RemoveAll(IsMissingAsset) > 0;
             changed |= s_Recent.RemoveAll(IsMissingAsset) > 0;

@@ -52,6 +52,7 @@ namespace UnityFavoriteTool
 
         private void OnGUI()
         {
+            EnsureLoaded();
             EnsureCurrentThemeAndStyles();
             if (m_DraggedFavorite != null && !s_Favorites.Contains(m_DraggedFavorite))
                 CancelFavoriteDrag();

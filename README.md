@@ -20,7 +20,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 - **Light and Dark Themes** — Automatically follows the active Unity Editor theme.
 - **Project-local Storage** — Favorites, ordering and recent lists are saved in `UserSettings/QuickAccessSettings.asset`, independently for each project, and survive Unity restarts.
 - **Stable Asset References** — GUIDs keep favorites intact when assets or folders are renamed or moved (preserve their `.meta` files).
-- **Auto Cleanup** — Deleted or missing assets are automatically removed from both lists.
+- **Auto Cleanup** — Deletion events trigger cleanup after asset import completes. Startup and ordinary imports do not prune temporarily unavailable favorites.
 
 ## Installation
 
@@ -29,7 +29,7 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 1. Open Unity Package Manager (**Window > Package Manager**)
 2. Click the **+** button in the top-left corner
 3. Select **Add package by git URL...**
-4. Enter the repository URL: `https://github.com/SHthemW/Unity-Favorites-Tool.git`
+4. Enter the repository URL: `https://github.com/SHW2002/Unity-Favorites-Tool.git`
 5. Click **Add**
 
 <p align="center">
@@ -42,7 +42,7 @@ Copy the repository's `Editor` folder and assembly definition into your Unity pr
 
 ## Usage
 
-Open the window via the menu: **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` / `Cmd+Shift+Q`).
+Open the window via **Window > QuickAccess** or **Tools > QuickAccess** (shortcut: `Ctrl+Shift+Q` / `Cmd+Shift+Q`).
 
 ### Adding Favorites
 
@@ -76,15 +76,16 @@ and survives Unity restarts. New favorites still appear first; Recent keeps its 
 The toolbar filters Favorites and Recent together without changing their order. Search by name (`Player`), type (`t:prefab`, `t:SceneAsset`), or both (`Player t:prefab`). Queries use Unity's `AssetDatabase.FindAssets` syntax and are case insensitive.
 Use **Type** to select Scenes, Prefabs, Materials, Textures, Scripts, ScriptableObjects, Audio or Animations. A selection replaces existing `t:` filters and preserves the name query; **All Types** removes only type filters. The search field's clear button removes the entire query.
 Search is limited to entries already in these lists. While filtering, clear the search to reorder favorites; selection, opening and star toggles remain available. Queries are cached after a short typing delay and refreshed after project asset changes. Search text belongs to the window state, with no new EditorPrefs keys or changes to the favorites settings format.
+
 ### Storage and Legacy Migration
 
 `ScriptableSingleton` saves preferences in `UserSettings/QuickAccessSettings.asset` relative to the project root, outside the plugin folder. PlayerPrefs is not used.
 Keep `UserSettings` when moving or renaming the project. Deleting the entire project also removes its settings; uninstalling only the plugin leaves the settings file for you to remove if desired.
 Ignore `/UserSettings/` in the project's root Git ignore rules, or ignore that directory in SVN. These are personal workspace preferences, not team settings; copy the file separately when moving to another computer.
 
-When creating the settings for the first time, existing `QuickAccess_Favorites` and `QuickAccess_Recent` EditorPrefs are imported in order and converted to GUIDs, using only paths that resolve in the current project.
+When creating the settings for the first time, project-specific EditorPrefs from upstream 1.0.2 take priority (including intentionally empty lists). If a project-specific key is absent, shared legacy preferences are used. Migration waits for asset import to finish. The selected favorites and recent path lists are imported in order and converted to GUIDs, using only paths that resolve in the current project. Shared legacy keys are `QuickAccess_Favorites` and `QuickAccess_Recent`.
 Legacy data has no project identity, so matching is necessarily based on the current project's paths. Subsequent runs use only the project file. An intentionally empty list stays empty on restart; deleting the settings file triggers migration again.
-Legacy keys are neither written nor automatically deleted, since other projects may still need them. Clean up those two keys only after all relevant projects have migrated.
+Legacy keys are neither written nor automatically deleted, since other projects may still need them. Clean up legacy shared and project-specific keys only after all relevant projects have migrated.
 
 ## Requirements
 
