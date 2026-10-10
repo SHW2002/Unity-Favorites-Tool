@@ -1,74 +1,62 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
 
 namespace UnityFavoriteTool
 {
     public sealed partial class QuickAccessWindow
     {
-        private const string k_PrefsKeyFavorites = "QuickAccess_Favorites";
-        private const string k_PrefsKeyRecent = "QuickAccess_Recent";
         private static bool s_Loaded;
-
-        private static string ProjectPrefsKey(string key) =>
-            $"{key}_{Hash128.Compute(Application.dataPath.Replace('\\', '/'))}";
+        #region 数据持久化
 
         internal static void EnsureLoaded()
         {
             if (s_Loaded) return;
-
-            // 启动或导入期间资源数据库可能尚未就绪，不能据此删除持久化记录。
-            s_Favorites = LoadList(k_PrefsKeyFavorites);
-            s_Recent = LoadList(k_PrefsKeyRecent);
+            var settings = QuickAccessSettings.instance;
+            // Existing GUID lists are safe to load without resolving any assets.
+            // First-time path migration must wait until the database is ready.
+            if (!settings.IsInitialized && (EditorApplication.isUpdating || EditorApplication.isCompiling))
+                return;
+            settings.EnsureInitialized();
+            s_Favorites = settings.Favorites.ToList();
+            s_Recent = settings.Recent.ToList();
             s_Loaded = true;
         }
 
-        private static List<string> LoadList(string legacyKey)
+        private static void SaveAll()
         {
-            string projectKey = ProjectPrefsKey(legacyKey);
-            if (!EditorPrefs.HasKey(projectKey))
-            {
-                // 每个项目只迁移一次；保留旧键，避免破坏其他项目尚未迁移的数据。
-                EditorPrefs.SetString(projectKey, EditorPrefs.GetString(legacyKey, ""));
-            }
-
-            string data = EditorPrefs.GetString(projectKey, "");
-            return data.Split('|').Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+            QuickAccessSettings.instance.SaveLists(s_Favorites, s_Recent);
         }
 
-        private static void SaveFavorites() =>
-            EditorPrefs.SetString(ProjectPrefsKey(k_PrefsKeyFavorites), string.Join("|", s_Favorites));
-
-        private static void SaveRecent() =>
-            EditorPrefs.SetString(ProjectPrefsKey(k_PrefsKeyRecent), string.Join("|", s_Recent));
-
-        private static void ToggleFavorite(string assetPath)
+        private static void ToggleFavorite(string assetGuid)
         {
             EnsureLoaded();
-            if (s_Favorites.Contains(assetPath))
-                s_Favorites.Remove(assetPath);
+            if (!s_Loaded) return;
+            if (s_Favorites.Contains(assetGuid))
+                s_Favorites.Remove(assetGuid);
             else
-                s_Favorites.Insert(0, assetPath);
+                s_Favorites.Insert(0, assetGuid);
 
-            SaveFavorites();
+            SaveAll();
+            RepaintOpenWindows();
         }
 
-        internal static void RemoveDeletedAssets(string[] deletedAssets)
+        // A null destination means the end. Resolve GUIDs at commit time so a
+        // moved/renamed resource still identifies the same favorite.
+        private static void MoveFavorite(string assetGuid, string beforeGuid)
         {
-            if (deletedAssets.Length == 0) return;
-            EnsureLoaded();
+            int source = s_Favorites.IndexOf(assetGuid);
+            int destination = beforeGuid == null ? s_Favorites.Count : s_Favorites.IndexOf(beforeGuid);
+            if (source < 0 || destination < 0 || source == destination) return;
+            if (source < destination) destination--;
+            if (source == destination) return;
 
-            // 只依据明确的删除事件清理，包含已删除文件夹下的资源。
-            bool IsDeleted(string path) => deletedAssets.Any(deleted =>
-                path == deleted || path.StartsWith(deleted + "/", StringComparison.Ordinal));
-
-            bool favoritesChanged = s_Favorites.RemoveAll(IsDeleted) > 0;
-            bool recentChanged = s_Recent.RemoveAll(IsDeleted) > 0;
-            if (favoritesChanged) SaveFavorites();
-            if (recentChanged) SaveRecent();
-            if (favoritesChanged || recentChanged) RepaintOpenWindows();
+            s_Favorites.RemoveAt(source);
+            s_Favorites.Insert(destination, assetGuid);
+            SaveAll();
+            RepaintOpenWindows();
         }
+
+        #endregion
+
     }
 }

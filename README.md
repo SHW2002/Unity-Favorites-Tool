@@ -18,8 +18,9 @@ A lightweight Unity Editor window that provides quick access to your favorite an
 - **Context Menu** — Right-click any asset in the Project window and choose **Add to QuickAccess Favorites** or **Remove from QuickAccess Favorites**.
 - **Resizable Split View** — Drag the splitter bar between the Favorites and Recent panels to adjust their sizes.
 - **Light and Dark Themes** — Automatically follows the active Unity Editor theme.
-- **Persistent Storage** — Favorites and recent lists are saved via `EditorPrefs`, isolated by project path, and survive Unity restarts. Existing shared preferences are copied once per project without modifying the original data.
-- **Auto Cleanup** — Explicit asset deletion events remove entries from both lists. Assets temporarily unavailable during startup or import are retained.
+- **Project-local Storage** — Favorites, ordering and recent lists are saved in `UserSettings/QuickAccessSettings.asset`, independently for each project, and survive Unity restarts.
+- **Stable Asset References** — GUIDs keep favorites intact when assets or folders are renamed or moved (preserve their `.meta` files).
+- **Auto Cleanup** — Deletion events trigger cleanup after asset import completes. Startup and ordinary imports do not prune temporarily unavailable favorites.
 
 ## Installation
 
@@ -60,6 +61,31 @@ Open the window via **Window > QuickAccess** or **Tools > QuickAccess** (shortcu
 | --------------------------- | ------------------------------------------------------------ |
 | From the QuickAccess window | Click the star icon again to unstar                          |
 | From the Project window     | Right-click an asset > **Remove from QuickAccess Favorites** |
+
+### Reordering Favorites
+
+Drag the native list handle on the left of a Favorites row and release at the insertion line.
+The handle calls Unity's IMGUI `ReorderableList` renderer directly, using the current editor's style.
+This API belongs to `UnityEditorInternal`; compatibility should still be checked when upgrading Unity.
+Long lists scroll automatically when dragging near the top or bottom edge. Press Esc,
+switch windows, or release outside the list to cancel. The order is saved automatically
+and survives Unity restarts. New favorites still appear first; Recent keeps its automatic order.
+
+### Searching
+
+The toolbar filters Favorites and Recent together without changing their order. Search by name (`Player`), type (`t:prefab`, `t:SceneAsset`), or both (`Player t:prefab`). Queries use Unity's `AssetDatabase.FindAssets` syntax and are case insensitive.
+Use **Type** to select Scenes, Prefabs, Materials, Textures, Scripts, ScriptableObjects, Audio or Animations. A selection replaces existing `t:` filters and preserves the name query; **All Types** removes only type filters. The search field's clear button removes the entire query.
+Search is limited to entries already in these lists. While filtering, clear the search to reorder favorites; selection, opening and star toggles remain available. Queries are cached after a short typing delay and refreshed after project asset changes. Search text belongs to the window state, with no new EditorPrefs keys or changes to the favorites settings format.
+
+### Storage and Legacy Migration
+
+`ScriptableSingleton` saves preferences in `UserSettings/QuickAccessSettings.asset` relative to the project root, outside the plugin folder. PlayerPrefs is not used.
+Keep `UserSettings` when moving or renaming the project. Deleting the entire project also removes its settings; uninstalling only the plugin leaves the settings file for you to remove if desired.
+Ignore `/UserSettings/` in the project's root Git ignore rules, or ignore that directory in SVN. These are personal workspace preferences, not team settings; copy the file separately when moving to another computer.
+
+When creating the settings for the first time, project-specific EditorPrefs from upstream 1.0.2 take priority (including intentionally empty lists). If a project-specific key is absent, shared legacy preferences are used. Migration waits for asset import to finish. The selected favorites and recent path lists are imported in order and converted to GUIDs, using only paths that resolve in the current project. Shared legacy keys are `QuickAccess_Favorites` and `QuickAccess_Recent`.
+Legacy data has no project identity, so matching is necessarily based on the current project's paths. Subsequent runs use only the project file. An intentionally empty list stays empty on restart; deleting the settings file triggers migration again.
+Legacy keys are neither written nor automatically deleted, since other projects may still need them. Clean up legacy shared and project-specific keys only after all relevant projects have migrated.
 
 ## Requirements
 
